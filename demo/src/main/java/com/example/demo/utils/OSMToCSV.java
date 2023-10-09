@@ -27,24 +27,34 @@ import java.util.List;
 @Component
 public class OSMToCSV {
 
-
-    public void toCSVData(String inputOsmXmlFilePath, String outputGraphDataCsvPath) {
+    private Document buildXmlDocumentReader(String path) {
         try {
-//            SAXReader reader = new SAXReader();
-//            Document document = reader.read(new File(inputOsmXmlFilePath));
-
-
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-            InputStream istStream = new FileInputStream(inputOsmXmlFilePath);
+            InputStream istStream = new FileInputStream(path);
 
-            Reader reader = new InputStreamReader(istStream, "UTF-8");
-            InputSource is = new InputSource(reader);
+            InputSource is = new InputSource(new InputStreamReader(istStream, "UTF-8"));
             is.setEncoding("UTF-8");
 
             DocumentBuilder db = dbf.newDocumentBuilder();
 
             Document doc = db.parse(is);
+            return doc;
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return null;
+
+        }
+    }
+
+
+    public void toCSVData(String inputOsmXmlFilePath, String outputGraphDataCsvPath) {
+        try {
+
+
+
+            Document doc = buildXmlDocumentReader(inputOsmXmlFilePath);
 
             NodeList osmNodes = doc.getElementsByTagName("node");
             NodeList osmWays = doc.getElementsByTagName("way");
@@ -55,7 +65,7 @@ public class OSMToCSV {
 
 
         } catch (Exception e) {
-            System.out.println(">>>>>>>>>>>>>>" + e.getMessage());
+
             e.printStackTrace();
 
         }
@@ -96,10 +106,10 @@ public class OSMToCSV {
             CSVReader csvReader = new CSVReaderBuilder(new FileReader(outputGraphDataCsvPath)).build();
             List<String[]> csvBody = csvReader.readAll();
             CSVWriter writer = new CSVWriter(new FileWriter(outputGraphDataCsvPath), ',');
-//            CSVWriter writer = new CSVWriter(new FileWriter(outputGraphDataCsvPath));
+
 
             for (int k = 0; k < osmWays.getLength(); k++) {
-                System.out.println("------------------>>>>>");
+
                 Node wayi = osmWays.item(k);
                 if (wayi.hasChildNodes()) {
                     NodeList wayPointNodes = wayi.getChildNodes();
@@ -110,12 +120,10 @@ public class OSMToCSV {
                         }
                     }
                     for (int l = 0; l < (ndlist.size() - 1); l++) {
-                        System.out.println("------------------");
+
                         Node nd1 = ndlist.get(l);
                         Node nd2 = ndlist.get(l + 1);
-                        System.out.println(nd1.getNodeName() + "....." + nd2.getNodeName());
 
-                        System.out.println("------------------OKOKOK");
                         int nd1MapIdx = nodeIdIdxMap.get(Long.valueOf(nd1.getAttributes().getNamedItem("ref").getTextContent()));
 
 
@@ -129,7 +137,7 @@ public class OSMToCSV {
                                 osmNd2Node.getAttributes().getNamedItem("lat").getTextContent(),
                                 osmNd2Node.getAttributes().getNamedItem("lon").getTextContent());
                         //get edge in csv(" " at the begining) :
-                        System.out.println(">>>>>>>>>>>>>WEIGHT: " + weight);
+
                         String csvNd1Edge = csvBody.get(nd1MapIdx)[4];
                         String csvNd2Edge = csvBody.get(nd2MapIdx)[4];
 
@@ -171,6 +179,11 @@ public class OSMToCSV {
 
         return Haversine.distance(startLat, startLon, endLat, endLon);
     }
+
+
+
+
+
 
 
 }

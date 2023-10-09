@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.example.demo.pojo.Edge;
 import com.example.demo.pojo.Point;
@@ -29,7 +30,6 @@ public class AdjListGraph {
             List<String[]> csvBody = csvReader.readAll();
 //            System.out.println("Data size: " + csvBody.size());
             if (!data.isEmpty()) {
-                System.out.println("data not empty " + data.size());
                 data = new HashMap<>();
             }
 
@@ -64,6 +64,17 @@ public class AdjListGraph {
             e.printStackTrace();
         }
 
+    }
+
+    public Map<String, String> getMiddlePlace(){
+        List<Long> keyList = this.data.keySet().stream().collect(Collectors.toList());
+        Long middleKey = keyList.get(this.data.size() / 2);
+        Point middleItem = this.data.get(middleKey);
+        return new HashMap<String, String>() {{
+            put("lng", middleItem.getLon());
+            put("lat", middleItem.getLat());
+
+        }};
     }
 
 }

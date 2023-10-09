@@ -1,13 +1,17 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 
-import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
+import { Marker, Polyline } from "react-leaflet";
 
 import { useRef } from "react";
-import { blueIcon, greenIcon } from "./Icon";
+import Map from "./Map";
 import "leaflet/dist/leaflet.css";
+import "./App.css";
+import { greenIcon } from "./Icon"
+import SearchBar from "./SearchBar";
 function App() {
+
 
 
 
@@ -17,6 +21,10 @@ function App() {
   const [searchData, setSearchData] = useState(null)
   const [path, setPath] = useState([])
 
+  const [activeMap, setActiveMap] = useState("")
+  const [mapList, setMapList] = useState([])
+  const [places, setPlaces]= useState([])
+  const [appName, setAppName] = useState("abc")
   const onInputChange = (e) => {
     const { name, value } = e.target;
     setSearchData({
@@ -25,8 +33,41 @@ function App() {
     });
   }
 
+  const fetchMaps = async () => {
+    const rs = await fetch("http://localhost:8080/maps")
+    const rsdata = await rs.json()
+    setMapList(rsdata)
+    setActiveMap(rsdata[0])
+  }
+
+  const fetchCurMap = async () => {
+    if (activeMap) {
+      const rs = await fetch(`http://localhost:8080/map/${activeMap}`)
+      const resdata = await rs.json();
+      setCenter({ lng: resdata.lng, lat: resdata.lat })
+      const rs1 = await fetch(`http://localhost:8080/places`)
+      const resdata1 = await rs1.json();
+      setPlaces(resdata1)
+
+    }
+
+
+  }
+
+  useEffect(() => {
+    fetchMaps();
+  }, [])
+  useEffect(() => {
+    fetchCurMap()
+
+
+  }, [activeMap])
+
+
+  
+
   const searchSubmit = async () => {
-    const resdata = await fetch("http://localhost:8080/map/api/search?source=1924760081&destination=7234432185")
+    const resdata = await fetch("http://localhost:8080/map/api/search?source=5247369420&destination=5257234327")
       .then(response => {
 
         if (!response.ok) {
@@ -45,22 +86,38 @@ function App() {
     setPath(resdata)
   }
 
-  console.log(path);
+
+
   return (
     <div >
       <div className="header">
-        <label htmlFor="">Source</label>
-        <input type="text" name="source" onChange={onInputChange} />
-        <label htmlFor="">Destination</label>
-        <input type="text" name="destination" onChange={onInputChange} />
-        <button onClick={searchSubmit}>find</button>
+
+
+        <div className="left">
+          {/* <label htmlFor="">Source</label>
+          <input type="text" name="source" onChange={onInputChange} /> */}
+
+          <SearchBar data={places
+          }></SearchBar>
+
+          <SearchBar data={
+            places
+          }></SearchBar>
+
+          <button onClick={searchSubmit}>find</button>
+        </div>
+
+        <div className="right">
+          <select onChange={(e) => setActiveMap(e.target.value)} name="" id="">
+            {mapList.length > 0 && mapList.map(el => <option value={el}>{el}</option>)}
+          </select>
+        </div>
+
+
       </div>
-      <MapContainer
-        style={{ height: '500px', width: '80%', margin: '100px auto' }} center={[center.lat, center.lng]} zoom={9} >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
+      <Map
+        styles={{ height: '500px', width: '80%', margin: '100px auto' }} center={[center.lat, center.lng]} zoom={16} >
+
 
         {path.length && <>
           <Marker position={[path[0].lat, path[0].lon]} icon={greenIcon} />
@@ -72,7 +129,7 @@ function App() {
         </>}
 
 
-      </MapContainer>
+      </Map>
     </div>
   );
 

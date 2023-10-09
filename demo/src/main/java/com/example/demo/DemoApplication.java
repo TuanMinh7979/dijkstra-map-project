@@ -11,10 +11,9 @@ import org.springframework.context.annotation.ComponentScan;
 import com.example.demo.controller.MapController;
 
 
-// @ComponentScan(basePackages = "com.example.demo")
+
 @SpringBootApplication
-// @EntityScan("com.example.demo.*")
-// @EnableJpaRepositories("com.example.demo.model")
+
 public class DemoApplication implements CommandLineRunner {
 
 	@Autowired
@@ -26,7 +25,7 @@ public class DemoApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		mapController.hdleSetupGraph();
+		mapController.hdleSetup();
 	}
 
 }
