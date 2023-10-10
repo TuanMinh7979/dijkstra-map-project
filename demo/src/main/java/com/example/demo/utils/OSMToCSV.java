@@ -1,6 +1,5 @@
 package com.example.demo.utils;
 
-
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
@@ -14,13 +13,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -48,11 +47,8 @@ public class OSMToCSV {
         }
     }
 
-
     public void toCSVData(String inputOsmXmlFilePath, String outputGraphDataCsvPath) {
         try {
-
-
 
             Document doc = buildXmlDocumentReader(inputOsmXmlFilePath);
 
@@ -63,7 +59,6 @@ public class OSMToCSV {
             setUpEdges(osmNodes, osmWays, outputGraphDataCsvPath);
             System.out.println("Create data csv file successfully!");
 
-
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -71,7 +66,6 @@ public class OSMToCSV {
         }
 
     }
-
 
     private void setUpNodes(NodeList osmNodes, String outputGraphDataCsvPath) {
         try {
@@ -107,7 +101,6 @@ public class OSMToCSV {
             List<String[]> csvBody = csvReader.readAll();
             CSVWriter writer = new CSVWriter(new FileWriter(outputGraphDataCsvPath), ',');
 
-
             for (int k = 0; k < osmWays.getLength(); k++) {
 
                 Node wayi = osmWays.item(k);
@@ -124,10 +117,11 @@ public class OSMToCSV {
                         Node nd1 = ndlist.get(l);
                         Node nd2 = ndlist.get(l + 1);
 
-                        int nd1MapIdx = nodeIdIdxMap.get(Long.valueOf(nd1.getAttributes().getNamedItem("ref").getTextContent()));
+                        int nd1MapIdx = nodeIdIdxMap
+                                .get(Long.valueOf(nd1.getAttributes().getNamedItem("ref").getTextContent()));
 
-
-                        int nd2MapIdx = nodeIdIdxMap.get(Long.valueOf(nd2.getAttributes().getNamedItem("ref").getTextContent()));
+                        int nd2MapIdx = nodeIdIdxMap
+                                .get(Long.valueOf(nd2.getAttributes().getNamedItem("ref").getTextContent()));
 
                         Node osmNd1Node = osmNodes.item(nd1MapIdx);
                         Node osmNd2Node = osmNodes.item(nd2MapIdx);
@@ -136,20 +130,21 @@ public class OSMToCSV {
                                 osmNd1Node.getAttributes().getNamedItem("lon").getTextContent(),
                                 osmNd2Node.getAttributes().getNamedItem("lat").getTextContent(),
                                 osmNd2Node.getAttributes().getNamedItem("lon").getTextContent());
-                        //get edge in csv(" " at the begining) :
+                        // get edge in csv(" " at the begining) :
 
                         String csvNd1Edge = csvBody.get(nd1MapIdx)[4];
                         String csvNd2Edge = csvBody.get(nd2MapIdx)[4];
 
-                        String add1 = " " + Long.valueOf(nd2.getAttributes().getNamedItem("ref").getTextContent()) + ":" + weight;
-                        String add2 = " " + Long.valueOf(nd1.getAttributes().getNamedItem("ref").getTextContent()) + ":" + weight;
+                        String add1 = " " + Long.valueOf(nd2.getAttributes().getNamedItem("ref").getTextContent()) + ":"
+                                + weight;
+                        String add2 = " " + Long.valueOf(nd1.getAttributes().getNamedItem("ref").getTextContent()) + ":"
+                                + weight;
                         csvNd1Edge += add1;
                         csvNd2Edge += add2;
 
-                        //write to csv file
+                        // write to csv file
                         csvBody.get(nd1MapIdx)[4] = csvNd1Edge.trim();
                         csvBody.get(nd2MapIdx)[4] = csvNd2Edge.trim();
-
 
                     }
                 }
@@ -165,9 +160,7 @@ public class OSMToCSV {
             e.printStackTrace();
         }
 
-
     }
-
 
     public Double getWeight(String srcLat, String srcLon, String desLat, String desLon) {
 
@@ -180,10 +173,64 @@ public class OSMToCSV {
         return Haversine.distance(startLat, startLon, endLat, endLon);
     }
 
+    public void createPlaceDBDataCSV(String osmPath, String outputPlaceDBDataCsvFilePath) {
+        try {
+            List<Node> nodeList = new ArrayList<>();
+            Map<Long, Integer> nodeIdIdxMap = new HashMap<>();
+            Document doc = buildXmlDocumentReader(osmPath);
 
+            UpdateOSM.makeDataFromOSM(doc, nodeList, nodeIdIdxMap, null, null);
 
+            // RS
 
+            NodeList osmPointNodeList = doc.getElementsByTagName("node");
+            List<Long> places = new ArrayList<>();
+            for (int i = 0; i < osmPointNodeList.getLength(); i++) {
+                Node nodei = osmPointNodeList.item(i);
+                if (nodei.hasChildNodes() && nodei.getChildNodes().getLength() > 3) {
 
+                    places.add(Long.parseLong(nodei.getAttributes().getNamedItem("id").getTextContent()));
 
+                }
+            }
+            // MODIFY LOCATION
+
+            CSVWriter writer = new CSVWriter(
+                    new FileWriter(outputPlaceDBDataCsvFilePath));
+            System.out.println(">>>SET DB DATA");
+            for (Long elId : places) {
+
+                Node el = nodeList.get(nodeIdIdxMap.get(elId));
+                NodeList elChilds = el.getChildNodes();
+
+                String placeName = "none";
+
+                for (int i = elChilds.getLength() - 1; i >= 0; i--) {
+
+                    Node tagNode = elChilds.item(i);
+                    if (tagNode.getNodeName().equals("tag")
+                            && tagNode.getAttributes().getNamedItem("k").getTextContent().equals("name")) {
+                        placeName = tagNode.getAttributes().getNamedItem("v").getTextContent();
+                        break;
+                    }
+
+                }
+
+                if (placeName.equals("none"))
+                    continue;
+
+                String[] array = new String[] { String.valueOf(elId), placeName };
+                writer.writeNext(array);
+            }
+            writer.close();
+
+            System.out.println("Setup place data to csv file success fully");
+        } catch (
+
+        Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
 }

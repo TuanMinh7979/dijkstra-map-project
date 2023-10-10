@@ -1,0 +1,52 @@
+.dialog-container {
+    position: fixed;
+    top: calc(50% - 100px);
+    left: calc(50% - 150px);
+    width: 300px;
+    height: 200px;
+    background: white;
+    z-index: 101;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dialog-container .dialog {
+    background: var(--white-1);
+    width: 80vw;
+    max-width: 600px;
+    border-radius: 0.25rem;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.dialog-container .dialog h4 {
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+.dialog-container .dialog .btn-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.dialog-container .dialog .btn-container .btn {
+    background: transparent;
+    padding: 0.5rem 1rem;
+    margin-top: 2.25rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.dialog-container .dialog .btn-container .cancel-btn {
+    border-color: var(--primary-1);
+    color: var(--primary-1);
+    font-weight: bold;
+}
+
+.dialog-container .dialog .btn-container .confirm-btn {
+    background-color: var(--red-1);
+    border: 1px solid var(--red-1);
+    color: var(--white-1);
+    font-weight: bold;
+}

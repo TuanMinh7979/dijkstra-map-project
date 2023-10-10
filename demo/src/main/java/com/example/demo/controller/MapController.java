@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
 @Controller
 @RequestMapping("")
 @RequiredArgsConstructor
@@ -41,15 +40,25 @@ public class MapController {
     private final UpdateOSM updateOSM;
     private final OSMToCSV osmToCSV;
 
-
     private final String DATA_PATH = System.getProperty("user.dir") + "/src/main/mapdata";
-    private String activeMapName = "default";
+    // private String activeMapName = "default";
 
+    private String createOsmXmlPath(String filename) {
+        return DATA_PATH + "/osm/" + filename + ".xml";
+    }
+
+    private String createPLacesCsv(String filename) {
+        return DATA_PATH + "/dbcsv/" + filename + ".csv";
+    }
+
+    private String createGraphCsv(String filename) {
+        return DATA_PATH + "/graphcsv/" + filename + ".csv";
+    }
 
     @GetMapping("maps")
     public List<String> allMap() {
         File directoryPath = new File(DATA_PATH + "/osm");
-        //List of all files and directories
+        // List of all files and directories
         String contents[] = directoryPath.list();
         List<String> allMap = new ArrayList<>();
         for (int i = 0; i < contents.length; i++) {
@@ -59,43 +68,33 @@ public class MapController {
         return allMap;
     }
 
-
     @GetMapping("places")
     public List<PlaceDto> searchPlace() {
 
         return placeData.getPlaceDtoList();
     }
 
-    @GetMapping("test-update-osm")
-    public String testUpdateOSM() {
-        String osmPath = DATA_PATH + "/osm/" + activeMapName + ".xml";
-        updateOSM.updateOsmXmlData(osmPath);
-        return "thanhcong";
-    }
+    // @GetMapping("test-update-osm")
+    // public String testUpdateOSM() {
+    //     String osmPath = createOsmXmlPath(activeMapName);
+    //     updateOSM.updateOsmXmlData(osmPath);
+    //     return "thanhcong";
+    // }
 
-
-    @GetMapping("test-create-graphcsv")
-    public String testCreateGraphCSV() {
-        String osmPath = DATA_PATH + "/osm/" + activeMapName + ".xml";
-        String newGraphDataCsvPath = DATA_PATH + "/graphcsv/" + activeMapName + ".csv";
-        osmToCSV.toCSVData(osmPath, newGraphDataCsvPath);
-        return "thanhcong";
-    }
-
+    // @GetMapping("test-create-graphcsv")
+    // public String testCreateGraphCSV() {
+    //     String osmPath = createOsmXmlPath(activeMapName);
+    //     String newGraphDataCsvPath = createGraphCsv(activeMapName);
+    //     osmToCSV.toCSVData(osmPath, newGraphDataCsvPath);
+    //     return "thanhcong";
+    // }
 
     @GetMapping("map/{mapname}")
     public Map<String, String> getMap(@PathVariable String mapname) {
-        adjListGraph.setupGraph(DATA_PATH + "/graphcsv/" + mapname + ".csv");
-        placeData.setup(DATA_PATH + "/dbcsv/" + mapname + ".csv");
+        adjListGraph.setupGraph(createGraphCsv(mapname));
+        placeData.setup(createPLacesCsv(mapname));
         return adjListGraph.getMiddlePlace();
     }
-
-    public void hdleSetup() {
-        adjListGraph.setupGraph(DATA_PATH + "/graphcsv/" + activeMapName + ".csv");
-        placeData.setup(DATA_PATH + "/dbcsv/" + activeMapName + ".csv");
-
-    }
-
 
     // map/api/search
 
@@ -104,20 +103,18 @@ public class MapController {
     public List<PointDto> getShortestPath(
             @RequestParam(value = "source") String srcStr,
             @RequestParam(value = "destination") String desStr) {
-        // Long srcNodeId = placeRepo.getNodeIdByName(srcStr);
-        // Long desNodeId = placeRepo.getNodeIdByName(desStr);
-        // System.out.println("SOURCE NODE ID: " + srcNodeId);
-        // System.out.println("DESTINATION NODE ID: " + desNodeId);
+        System.out.println("--_____________SEARCH " + srcStr + "--->" + desStr);
         return dijkstraSearchAlgo.findShortestPath(Long.parseLong(srcStr), Long.parseLong(desStr));
     }
-
 
     @PostMapping("add-new-map")
     public String addUpdateAndCreateDbCsvDataFromXml(@RequestParam("file") MultipartFile file) {
         File savedFile = uploadUtil.handelUploadFile(file);
         String osmPath = savedFile.getPath();
+        String mapName = savedFile.getName().substring(0, savedFile.getName().lastIndexOf("."));
         updateOSM.updateOsmXmlData(osmPath);
-        osmToCSV.toCSVData(osmPath, osmPath.replace("osm", "graphcsv"));
+        osmToCSV.toCSVData(osmPath, createGraphCsv(mapName));
+        osmToCSV.createPlaceDBDataCSV(osmPath, createPLacesCsv(mapName));
         return "success";
     }
 
@@ -128,26 +125,22 @@ public class MapController {
         return data;
     }
 
-    @GetMapping("setup/delete-csvdata/{dataFileName}")
+    @DeleteMapping("map/{mapName}")
     @ResponseBody
-    public ResponseEntity<String> deleteMap(@PathVariable String dataFileName) {
-        File graphCsvPath = new File(
-                DATA_PATH + "\\src\\main\\webapp\\mapsimulator\\graphcsv\\" + dataFileName + ".csv");
-        if (graphCsvPath.exists())
-            graphCsvPath.delete();
+    public ResponseEntity<String> deleteMap(@PathVariable String mapName) {
+        File graphCsvFile = new File(createGraphCsv(mapName));
+        if (graphCsvFile.exists())
+            graphCsvFile.delete();
 
-        File dbCsvPath = new File(DATA_PATH + "\\src\\main\\webapp\\mapsimulator\\dbcsv\\" + dataFileName + ".csv");
-        if (dbCsvPath.exists())
-            dbCsvPath.delete();
+        File placesCsvFile = new File(createPLacesCsv(mapName));
+        if (placesCsvFile.exists())
+            placesCsvFile.delete();
 
-        File graphXmlPath = new File(DATA_PATH + "\\src\\main\\webapp\\mapsimulator\\osm\\" + dataFileName + ".xml");
-        if (graphXmlPath.exists())
-            graphXmlPath.delete();
-        File graphOsmPath = new File(DATA_PATH + "\\src\\main\\webapp\\mapsimulator\\osm\\" + dataFileName + ".osm");
-        if (graphOsmPath.exists())
-            graphOsmPath.delete();
+        File osmXmlFile = new File(createOsmXmlPath(mapName));
+        if (osmXmlFile.exists())
+            osmXmlFile.delete();
+
         return new ResponseEntity<>("delete map success", HttpStatus.OK);
     }
-
 
 }

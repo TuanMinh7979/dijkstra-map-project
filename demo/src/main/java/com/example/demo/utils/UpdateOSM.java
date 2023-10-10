@@ -1,6 +1,5 @@
 package com.example.demo.utils;
 
-
 import com.opencsv.CSVWriter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ import java.net.*;
 
 import java.util.*;
 
-
 @Slf4j
 
 @Getter
@@ -47,7 +45,6 @@ public class UpdateOSM {
         return;
     }
 
-
     private Document buildXmlDocumentReader(String path) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -60,6 +57,7 @@ public class UpdateOSM {
             DocumentBuilder db = dbf.newDocumentBuilder();
 
             Document doc = db.parse(is);
+
             return doc;
         } catch (Exception e) {
 
@@ -72,17 +70,16 @@ public class UpdateOSM {
     // func to change long and lat of place node by its way point long and lat(from
     // nearest service waypoint api)
     // build insert data list( from nearest service waypoint data )with each element
-    // is {placeNodeId: placeNodeId,wayPointNearestNodeId: nearest node of wp node, street name
+    // is {placeNodeId: placeNodeId,wayPointNearestNodeId: nearest node of wp node,
+    // street name
     // }
     private void updatePlaceLonLatAndNearestServiceDatas(String osmXmlFilePathToUpdate) {
         System.out.println(">>>UPDATE PLACE LOCATION AND NEAREST SERVICE DATA");
         try {
 
-
             Document doc = buildXmlDocumentReader(osmXmlFilePathToUpdate);
 
             NodeList osmPointNodeList = doc.getElementsByTagName("node");
-
 
             for (int i = 0; i < osmPointNodeList.getLength(); i++) {
                 Node nodei = osmPointNodeList.item(i);
@@ -91,7 +88,8 @@ public class UpdateOSM {
                     String oldlong = nodei.getAttributes().getNamedItem("lon").getTextContent();
                     String urlStr = "http://router.project-osrm.org/nearest/v1/driving/" + oldlong + "," + oldlat
                             + "?number=1";
-                    System.out.println(">>>>Url get waypoint location,  its nearest node id and its way name: " + urlStr);
+                    System.out
+                            .println(">>>>Url get waypoint location,  its nearest node id and its way name: " + urlStr);
                     URL url = null;
                     try {
                         url = new URL(urlStr);
@@ -134,7 +132,8 @@ public class UpdateOSM {
 
                         System.out.println("____STREETNAME là: " + dataStreetName);
                         dataStreetName = dataStreetName.isEmpty() ? "nullname" : dataStreetName;
-                        nearestServiceDatas.add(new NearestServiceData(placeNodeId, wayPointNearestNodeId, dataStreetName));
+                        nearestServiceDatas
+                                .add(new NearestServiceData(placeNodeId, wayPointNearestNodeId, dataStreetName));
 
                         JSONArray location = (JSONArray) wpData.get("location");
                         // data
@@ -167,6 +166,7 @@ public class UpdateOSM {
             StreamResult result = new StreamResult(osmXmlFilePathToUpdate);
 
             tf.transform(source, result);
+
             System.out.println(">>>Setup place location successfully");
 
         } catch (TransformerConfigurationException e) {
@@ -181,14 +181,9 @@ public class UpdateOSM {
 
     }
 
-    public void makeDataFromOSM(String osmXmlFilePathToUpdate, List<Node> nodeIds, Map<Long, Integer> nodeIdIdxMap,
-                                List<Node> wayIds, Map<Long, Integer> wayIdIdxMap
-    ) {
+    public static void makeDataFromOSM(Document doc, List<Node> nodeIds, Map<Long, Integer> nodeIdIdxMap,
+            List<Node> wayIds, Map<Long, Integer> wayIdIdxMap) {
         try {
-
-
-            Document doc = buildXmlDocumentReader(osmXmlFilePathToUpdate);
-
 
             if (nodeIds != null && nodeIdIdxMap != null) {
                 NodeList osmPointNodeList = doc.getElementsByTagName("node");
@@ -200,7 +195,6 @@ public class UpdateOSM {
                     nodeIdIdxMap.put(elId, i);
                 }
             }
-
 
             if (wayIds != null && wayIdIdxMap != null) {
                 NodeList osmWayNodeList = doc.getElementsByTagName("way");
@@ -214,10 +208,8 @@ public class UpdateOSM {
                 }
             }
 
-
         } catch (Exception e) {
             e.printStackTrace();
-
 
         }
 
@@ -233,11 +225,9 @@ public class UpdateOSM {
             Map<Long, Integer> nodeIdIdxMap = new HashMap<>();
             List<Node> wayIds = new ArrayList<>();
             Map<Long, Integer> wayIdIdxMap = new HashMap<>();
-            // RS
-            makeDataFromOSM(osmXmlFilePathToUpdate, nodeIds, nodeIdIdxMap, wayIds, wayIdIdxMap);
-
             Document doc = buildXmlDocumentReader(osmXmlFilePathToUpdate);
-
+            // RS
+            makeDataFromOSM(doc, nodeIds, nodeIdIdxMap, wayIds, wayIdIdxMap);
 
             // ADD NODEID TO WAY
             for (NearestServiceData pairI : nearestServiceDatas) {
@@ -248,14 +238,15 @@ public class UpdateOSM {
 
                 Long wayId = getWayId(wayPointNearestNodeId, streetName);
                 if (wayId == null) {
-                    log.warn(">>>WayPointNearestNodeId " + wayPointNearestNodeId + " of node " + placeNodeId + " is not in any way");
+                    log.warn(">>>WayPointNearestNodeId " + wayPointNearestNodeId + " of node " + placeNodeId
+                            + " is not in any way");
                     continue;
                 }
 
                 Integer wayIdx = wayIdIdxMap.get(wayId);
-
+                if (wayIdx == null)
+                    continue;
                 Node wayPointWay = wayIds.get(wayIdx);
-
 
                 NodeList wayPointWayChilds = wayPointWay.getChildNodes();
 
@@ -299,10 +290,13 @@ public class UpdateOSM {
                 int addedEleIdx = longListOrderForUpdateWay.indexOf(addNodeLong);
 
                 Node posNode = null;
+
                 if (addedEleIdx < (longListOrderForUpdateWay.size() - 1)) {
                     posNode = wayPointWayChildNdTagList.get(addedEleIdx);
+
                     wayPointWay.insertBefore(nd, posNode);
                 } else if (addedEleIdx == (longListOrderForUpdateWay.size() - 1)) {
+
                     wayPointWay.appendChild(nd);
                 }
             }
@@ -317,6 +311,8 @@ public class UpdateOSM {
         } catch (TransformerConfigurationException e) {
             e.printStackTrace();
         } catch (TransformerException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -336,7 +332,6 @@ public class UpdateOSM {
             NodeList ways = doc.getElementsByTagName("way");
             String wayIdStr = "";
 
-
             if (ways.getLength() == 0)
                 return null;
             for (int i = 0; i < ways.getLength(); i++) {
@@ -349,7 +344,6 @@ public class UpdateOSM {
 
                     if (childNode.getNodeName().equals("tag")) {
 
-
                         if (childNode.getAttributes().getNamedItem("k").getTextContent().equals("name")) {
                             System.out.println("---Street in api: "
                                     + childNode.getAttributes().getNamedItem("k").getTextContent().equals("name"));
@@ -357,8 +351,8 @@ public class UpdateOSM {
                         if (!streetNamePar.equals("nullname")
                                 && childNode.getAttributes().getNamedItem("k").getTextContent().equals("name")
                                 && (childNode.getAttributes().getNamedItem("v").getTextContent().equals(streetNamePar)
-                                || streetNamePar.indexOf(
-                                childNode.getAttributes().getNamedItem("v").getTextContent()) != -1)) {
+                                        || streetNamePar.indexOf(
+                                                childNode.getAttributes().getNamedItem("v").getTextContent()) != -1)) {
                             wayIdStr = wayItem.getAttributes().getNamedItem("id").getTextContent();
                             System.out.println(">>>>>Way id is " + wayIdStr + " in case 1");
                             return Long.parseLong(wayIdStr);
@@ -393,68 +387,5 @@ public class UpdateOSM {
         return null;
 
     }
-
-
-    public void createPlaceDBDataCSV(String osmPath, String outputPlaceDBDataCsvFilePath) {
-        try {
-            List<Node> nodeList = new ArrayList<>();
-            Map<Long, Integer> nodeIdIdxMap = new HashMap<>();
-
-            // RS
-            makeDataFromOSM(osmPath, nodeList, nodeIdIdxMap, null, null);
-
-
-            Document doc = buildXmlDocumentReader(osmPath);
-
-            NodeList osmPointNodeList = doc.getElementsByTagName("node");
-            List<Long> places = new ArrayList<>();
-            for (int i = 0; i < osmPointNodeList.getLength(); i++) {
-                Node nodei = osmPointNodeList.item(i);
-                if (nodei.hasChildNodes() && nodei.getChildNodes().getLength() > 3) {
-
-                    places.add(Long.parseLong(nodei.getAttributes().getNamedItem("id").getTextContent()));
-
-                }
-            }
-            // MODIFY LOCATION
-
-            CSVWriter writer = new CSVWriter(
-                    new FileWriter(outputPlaceDBDataCsvFilePath));
-            System.out.println(">>>SET DB DATA");
-            for (Long elId : places) {
-
-                Node el = nodeList.get(nodeIdIdxMap.get(elId));
-                NodeList elChilds = el.getChildNodes();
-
-                String placeName = "none";
-
-                for (int i = elChilds.getLength() - 1; i >= 0; i--) {
-
-                    Node tagNode = elChilds.item(i);
-                    if (tagNode.getNodeName().equals("tag")
-                            && tagNode.getAttributes().getNamedItem("k").getTextContent().equals("name")) {
-                        placeName = tagNode.getAttributes().getNamedItem("v").getTextContent();
-                        break;
-                    }
-
-                }
-
-                if (placeName.equals("none"))
-                    continue;
-
-
-                String[] array = new String[]{String.valueOf(elId), placeName};
-                writer.writeNext(array);
-            }
-            writer.close();
-            System.out.println("Setup place data to csv file success fully");
-        } catch (
-
-                Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
 
 }

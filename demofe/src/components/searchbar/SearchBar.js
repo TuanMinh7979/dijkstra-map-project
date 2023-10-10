@@ -3,8 +3,9 @@ import "./SearchBar.css";
 
 
 
-import { AiOutlineClose, AiOutlineSearch } from "react-icons/ai";
-function SearchBar({ placeholder, data }) {
+
+import { AiOutlineClose, AiOutlineSearch, AiFillDelete } from "react-icons/ai";
+function SearchBar({ placeholder, data, name, choosePlace }) {
     const [filteredData, setFilteredData] = useState([]);
     const [wordEntered, setWordEntered] = useState("");
 
@@ -12,7 +13,7 @@ function SearchBar({ placeholder, data }) {
         const searchWord = event.target.value;
         setWordEntered(searchWord);
         const newFilter = data.filter((value) => {
-            console.log(">>>>>>>>............", value);
+         
             return value.name.toLowerCase().includes(searchWord.toLowerCase());
         });
 
@@ -25,13 +26,14 @@ function SearchBar({ placeholder, data }) {
 
     const clearInput = () => {
         setFilteredData([]);
-        setWordEntered("");
+        // setWordEntered("");
     };
 
     return (
         <div className="search">
             <div className="searchInputs">
                 <input
+
                     type="text"
                     placeholder={placeholder}
                     value={wordEntered}
@@ -49,8 +51,16 @@ function SearchBar({ placeholder, data }) {
                 <div className="dataResult">
                     {filteredData.slice(0, 15).map((item, key) => {
                         return (
-                            <div className="dataItem" id={item.id}>
+                            <div onClick={()=>{
+                                setWordEntered(item.name)
+                                setFilteredData([])
+                                choosePlace(item.id, name)
+                               
+                            }
+                                } className="dataItem" id={item.id}>
                                 {item.name}
+
+                              
                             </div>
                         );
                     })}
