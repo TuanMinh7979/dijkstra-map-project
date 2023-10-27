@@ -22,75 +22,80 @@ public class DijkstraSearchAlgo  {
 
 
     public List<PointDto> findShortestPath(Long srcNodeId, Long targetId) {
-
-        data = adjListGraph.getData();
-
-
-
-        Map<Long, Boolean> visitedNodeMarks = new HashMap<>();
-        List<PointDto> visitedNodes = new ArrayList<>();
+        try {
+            System.out.println(">>>>>>>>>>>>>>>1");
+            data = adjListGraph.getData();
 
 
-        PointDto srcPointDto = pointMapper.toDto(data.get(srcNodeId));
+            Map<Long, Boolean> visitedNodeMarks = new HashMap<>();
+            List<PointDto> visitedNodes = new ArrayList<>();
 
 
-        srcPointDto.setDistance(0.0);
-
-        PriorityQueue<PointDto> priorityQueue = new PriorityQueue<>();
-        priorityQueue.add(srcPointDto);
-
-        visitedNodeMarks.put(srcPointDto.getId(), true);
-        visitedNodes.add(srcPointDto);
+            PointDto srcPointDto = pointMapper.toDto(data.get(srcNodeId));
 
 
-        while (!priorityQueue.isEmpty()) {
-            PointDto curPointDto = priorityQueue.poll();
+            srcPointDto.setDistance(0.0);
 
-            //add
-            Point curItem = data.get(curPointDto.getId());
-            //add
-            List<Edge> curEdges = curItem.getEdges();
+            PriorityQueue<PointDto> priorityQueue = new PriorityQueue<>();
+            priorityQueue.add(srcPointDto);
 
-            for (Edge edgei : curEdges) {
-                long neighBourId = edgei.getNeighBourId();
-                PointDto neighBouri = pointMapper.toDto(data.get(neighBourId));
+            visitedNodeMarks.put(srcPointDto.getId(), true);
+            visitedNodes.add(srcPointDto);
 
-                if (visitedNodeMarks.get(neighBouri.getId()) == null || visitedNodeMarks.get(neighBouri.getId()) == false) {
+            System.out.println(">>>>>>>>>>>>>>>2");
+            while (!priorityQueue.isEmpty()) {
+                PointDto curPointDto = priorityQueue.poll();
 
-                    Double newDis = curPointDto.getDistance() + edgei.getWeight();
+                //add
+                Point curItem = data.get(curPointDto.getId());
+                //add
+                List<Edge> curEdges = curItem.getEdges();
 
-                    if (newDis < neighBouri.getDistance()) {
-                        priorityQueue.remove(neighBouri);
-                        neighBouri.setDistance(newDis);
-                        neighBouri.setPrev(curPointDto);
+                for (Edge edgei : curEdges) {
+                    long neighBourId = edgei.getNeighBourId();
+                    PointDto neighBouri = pointMapper.toDto(data.get(neighBourId));
 
-                        priorityQueue.add(neighBouri);
+                    if (visitedNodeMarks.get(neighBouri.getId()) == null || visitedNodeMarks.get(neighBouri.getId()) == false) {
+
+                        Double newDis = curPointDto.getDistance() + edgei.getWeight();
+
+                        if (newDis < neighBouri.getDistance()) {
+                            priorityQueue.remove(neighBouri);
+                            neighBouri.setDistance(newDis);
+                            neighBouri.setPrev(curPointDto);
+
+                            priorityQueue.add(neighBouri);
+                        }
                     }
+
                 }
+                visitedNodeMarks.put(curPointDto.getId(), true);
+                visitedNodes.add(curPointDto);
+
 
             }
-            visitedNodeMarks.put(curPointDto.getId(), true);
-            visitedNodes.add(curPointDto);
 
-
-        }
-
-
-        PointDto target = null;
-        for (PointDto rsi : visitedNodes) {
-            if (rsi.getId().equals(targetId)) {
-                target = rsi;
-                break;
+            System.out.println(">>>>>>>>>>>>>>>3");
+            PointDto target = null;
+            for (PointDto rsi : visitedNodes) {
+                if (rsi.getId().equals(targetId)) {
+                    target = rsi;
+                    break;
+                }
             }
-        }
-        List<PointDto> path = new ArrayList<>();
-        for (PointDto node = target; node != null; node = node.getPrev()) {
-            path.add(node);
-        }
-        Collections.reverse(path);
-        return path;
+            List<PointDto> path = new ArrayList<>();
+            for (PointDto node = target; node != null; node = node.getPrev()) {
+                path.add(node);
+            }
+            Collections.reverse(path);
+            System.out.println(">>>>>>>>>>>>>>>" + path);
+            return path;
 
 
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

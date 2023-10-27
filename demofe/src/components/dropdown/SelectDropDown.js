@@ -1,13 +1,16 @@
 import React from 'react'
 import './SelectDropDown.css'
-import { useState } from 'react'
+
 import { AiFillCaretUp, AiFillCaretDown, AiFillDelete } from 'react-icons/ai'
-const SelectDropDown = ({ value, data, handleOnClick, handleClickDelete }) => {
-    const [isActive, setIsActive] = useState(false)
+import useDetectOutsideClick from '../../hooks/useDetectOutsideClick'
+import { useRef } from 'react'
+const SelectDropDown = ({ value, data, handleOnClick, handleClickDelete, classNameProp }) => {
+    const inputRef = useRef()
+    const [isActive, setIsActive] = useDetectOutsideClick(inputRef, false, '')
 
 
     return (
-        <div className="dropdown">
+        <div ref={inputRef} className={`dropdown ${classNameProp ? classNameProp : ''}`}>
 
             <div className="dropdown-btn" onClick={() => setIsActive(!isActive)}>
                 {value}

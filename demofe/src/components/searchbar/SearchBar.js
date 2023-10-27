@@ -1,66 +1,86 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./SearchBar.css";
 
 
 
 
-import { AiOutlineClose, AiOutlineSearch, AiFillDelete } from "react-icons/ai";
+import { AiOutlineSearch } from "react-icons/ai";
+import useDetectOutsideClick from "../../hooks/useDetectOutsideClick";
 function SearchBar({ placeholder, data, name, choosePlace }) {
-    const [filteredData, setFilteredData] = useState([]);
+    const [filteredData, setFilteredData] = useState([...data]);
+
     const [wordEntered, setWordEntered] = useState("");
 
     const handleFilter = (event) => {
+        if (!showResult) {
+            setShowResult(true)
+        }
+
         const searchWord = event.target.value;
         setWordEntered(searchWord);
         const newFilter = data.filter((value) => {
-         
+
             return value.name.toLowerCase().includes(searchWord.toLowerCase());
         });
 
         if (searchWord === "") {
-            setFilteredData([]);
+            setFilteredData([...data]);
         } else {
             setFilteredData([...newFilter]);
         }
     };
 
     const clearInput = () => {
-        setFilteredData([]);
-        // setWordEntered("");
+        setFilteredData([...data]);
+        setWordEntered("");
+        setShowResult(false)
     };
+
+    useEffect(() => {
+        setWordEntered("")
+        setFilteredData([...data]);
+    }, [data])
+
+
+
+    const inputRef = useRef()
+    const [showResult, setShowResult] = useDetectOutsideClick(inputRef, false, "dataItem")
 
     return (
         <div className="search">
             <div className="searchInputs">
                 <input
-
+                    ref={inputRef}
                     type="text"
                     placeholder={placeholder}
                     value={wordEntered}
                     onChange={handleFilter}
+                    onClick={() => {
+                        if (!showResult) setShowResult(true)
+                    }}
                 />
                 <div className="searchIcon">
-                    {filteredData.length === 0 ? (
+                    {!showResult ? (
                         <AiOutlineSearch />
                     ) : (
-                        <AiOutlineClose id="clearBtn" onClick={clearInput} />
+                        <span  id="clearBtn" className="dataItem" onClick={() => clearInput()}>X</span>
                     )}
                 </div>
             </div>
-            {filteredData.length != 0 && (
+            {showResult && filteredData.length != 0 && (
                 <div className="dataResult">
                     {filteredData.slice(0, 15).map((item, key) => {
                         return (
-                            <div onClick={()=>{
+                            <div onClick={() => {
                                 setWordEntered(item.name)
                                 setFilteredData([])
                                 choosePlace(item.id, name)
-                               
+
                             }
-                                } className="dataItem" id={item.id}>
+                            } className="dataItem" id={item.id}>
                                 {item.name}
 
-                              
+
                             </div>
                         );
                     })}

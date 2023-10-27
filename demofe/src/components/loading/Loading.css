@@ -1,26 +1,28 @@
 .overlay {
     width: 100%;
-    height: 1000px;
+    height: 100%;
     position: absolute;
     z-index: 1000;
-    /* background-color: rgba(128, 128, 128); */
-    /* opacity: 0.5; */
-    /* background-color: rgba(135, 206, 235, 0.5);  */
+
+    background-color: rgba(0, 0, 0, 0.35);
 }
 
+
 .loader {
+    left: 50%;
+    top: 35%;
     opacity: 1 !important;
-    z-index: 1001 !important;
     width: 5rem;
     height: 5rem;
     border-radius: 50%;
     display: inline-block;
     position: relative;
     border: 3px solid;
-    border-color: aqua aqua transparent transparent;
+    border-color: cornflowerblue cornflowerblue transparent transparent;
     box-sizing: border-box;
     animation: rotation 1s linear infinite;
     background-color: transparent;
+    margin-left: -2.5rem;
 }
 
 .loader::after,
@@ -34,7 +36,7 @@
     bottom: 0;
     margin: auto;
     border: 3px solid;
-    border-color: transparent transparent #ff3d00 #ff3d00;
+    border-color: transparent transparent crimson crimson;
     width: 10ren;
     height: 10ren;
     border-radius: 50%;
@@ -46,7 +48,7 @@
 .loader::before {
     width: 4rem;
     height: 4rem;
-    border-color: aqua #fff transparent transparent;
+    border-color: cornflowerblue #fff transparent transparent;
     animation: rotation 2s linear infinite;
 }
 

@@ -24,12 +24,6 @@ public class Haversine {
     }
 
 
-    public static void main(String[] args) {
 
-
-        System.out.println(distance(
-                10.04945,105.78589, 10.0493818, 105.7854775 ));
-
-    }
 
 }

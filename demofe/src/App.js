@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { Marker, Polyline } from "react-leaflet";
-import { deleteAPI } from "./fetchData";
+import { deleteAPI, getAPI } from "./fetchData";
 import { useRef } from "react";
 import Map from "./Map";
 import "leaflet/dist/leaflet.css";
@@ -17,14 +17,15 @@ import 'react-toastify/dist/ReactToastify.css';
 import Loading from "./components/loading/Loading";
 function App() {
   const [center, setCenter] = useState({ lat: "", lng: "" });
-  const mapRef = useRef();
+
   const [searchData, setSearchData] = useState(null);
   const [path, setPath] = useState([]);
 
   const [activeMap, setActiveMap] = useState("");
   const [mapList, setMapList] = useState([]);
   const [places, setPlaces] = useState([]);
-  const [appName, setAppName] = useState("abc");
+  const [loading, setLoading] = useState(false);
+
   const onInputChange = (e) => {
     const { name, value } = e.target;
     setSearchData({
@@ -34,20 +35,19 @@ function App() {
   };
 
   const fetchMaps = async () => {
-    const rs = await fetch("http://localhost:8080/maps");
-    const rsdata = await rs.json();
+    const rsdata = await getAPI("http://localhost:8080/maps")
     setMapList(rsdata);
     setActiveMap(rsdata[0]);
   };
 
   const fetchCurMap = async () => {
     if (activeMap) {
-      const rs = await fetch(`http://localhost:8080/map/${activeMap}`);
-      const resdata = await rs.json();
-      setCenter({ lng: resdata.lng, lat: resdata.lat });
-      const rs1 = await fetch(`http://localhost:8080/places`);
-      const resdata1 = await rs1.json();
-      setPlaces(resdata1);
+      const centerPlace = await getAPI(`http://localhost:8080/map/${activeMap}`);
+
+      setCenter({ lng: centerPlace.lng, lat: centerPlace.lat });
+      const allPlaces = await getAPI(`http://localhost:8080/places`);
+
+      setPlaces([...allPlaces]);
     }
   };
 
@@ -56,6 +56,7 @@ function App() {
   }, []);
   useEffect(() => {
     fetchCurMap();
+
   }, [activeMap]);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -64,16 +65,28 @@ function App() {
   };
   const uploadFile = async () => {
     if (selectedFile) {
-      const formData = new FormData();
+      try {
+        setLoading(true)
+        const formData = new FormData();
 
-      formData.append("file", selectedFile);
+        formData.append("file", selectedFile);
 
-      const rs = await fetch("http://localhost:8080/add-new-map", {
-        method: "POST",
-        body: formData,
-      });
-      const rsdata = await rs.json();
-      console.log(rsdata);
+        const rs = await fetch("http://localhost:8080/add-new-map", {
+          method: "POST",
+          body: formData,
+        });
+        const rsdata = await rs.json();
+        console.log("-----------------------------????????", rsdata);
+        console.log(rs);
+
+        setLoading(false)
+        setMapList([...mapList, rsdata.filename])
+      }
+      catch (e) {
+        console.log(e);
+        setLoading(false)
+      }
+
     }
   };
 
@@ -116,9 +129,7 @@ function App() {
     data: ''
   })
 
-  const changeDialogDataIsOpen = (isOpen) => {
-    setDialogData({ ...dialogData, isOpen })
-  }
+
 
   const handleClickDelete = (toDeleteMapName) => {
     setDialogData({
@@ -137,9 +148,8 @@ function App() {
   }
   return (
     <div>
-      <Loading></Loading>
+      {loading && <Loading></Loading>}
       <ToastContainer />
-
       {
         dialogData.isOpen && <Dialog
           title={`Wanna delete map ${dialogData.data}?`}
@@ -148,20 +158,20 @@ function App() {
           secondButtonText="CANCEL"
           firstBtnHandler={() => {
             deleteService()
+            setDialogData({ isOpen: false, data: '' })
           }}
           secondBtnHandler={() => {
-           
-
-            changeDialogDataIsOpen(false)
+            setDialogData({ isOpen: false, data: '' })
           }} />
       }
 
-      <div className="header">
-        <div className="left">
+      <div className="header" >
+        <div className="left" >
           <SearchBar
             name="from"
             choosePlace={choosePlace}
             data={places}
+
           ></SearchBar>
 
           <SearchBar
@@ -170,20 +180,18 @@ function App() {
             data={places}
           ></SearchBar>
 
-          <button onClick={searchSubmit}>find</button>
+          <button className="findBtn" onClick={searchSubmit}>Find</button>
         </div>
 
-        <div className="right">
-
-
-          <SelectDropDown value={activeMap} data={mapList} handleOnClick={(el) => setActiveMap(el)}
-
-
+        <div className="right" >
+          <SelectDropDown classNameProp="maps-dropdown" value={activeMap} data={mapList} handleOnClick={(el) => setActiveMap(el)}
             handleClickDelete={handleClickDelete} />
+          <div className="upload">
+            <label htmlFor="">New map</label>
+            <input onChange={onChangeFile} type="file" />
+            <button onClick={uploadFile}>Upload</button>
+          </div>
 
-          <label htmlFor="">Add</label>
-          <input onChange={onChangeFile} type="file" />
-          <button onClick={uploadFile}>Upload</button>
         </div>
       </div>
       {center.lat && center.lng && (

@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -76,17 +77,17 @@ public class MapController {
 
     // @GetMapping("test-update-osm")
     // public String testUpdateOSM() {
-    //     String osmPath = createOsmXmlPath(activeMapName);
-    //     updateOSM.updateOsmXmlData(osmPath);
-    //     return "thanhcong";
+    // String osmPath = createOsmXmlPath(activeMapName);
+    // updateOSM.updateOsmXmlData(osmPath);
+    // return "thanhcong";
     // }
 
     // @GetMapping("test-create-graphcsv")
     // public String testCreateGraphCSV() {
-    //     String osmPath = createOsmXmlPath(activeMapName);
-    //     String newGraphDataCsvPath = createGraphCsv(activeMapName);
-    //     osmToCSV.toCSVData(osmPath, newGraphDataCsvPath);
-    //     return "thanhcong";
+    // String osmPath = createOsmXmlPath(activeMapName);
+    // String newGraphDataCsvPath = createGraphCsv(activeMapName);
+    // osmToCSV.toCSVData(osmPath, newGraphDataCsvPath);
+    // return "thanhcong";
     // }
 
     @GetMapping("map/{mapname}")
@@ -108,14 +109,19 @@ public class MapController {
     }
 
     @PostMapping("add-new-map")
-    public String addUpdateAndCreateDbCsvDataFromXml(@RequestParam("file") MultipartFile file) {
+    public Map<String, String> addUpdateAndCreateDbCsvDataFromXml(@RequestParam("file") MultipartFile file) {
         File savedFile = uploadUtil.handelUploadFile(file);
         String osmPath = savedFile.getPath();
         String mapName = savedFile.getName().substring(0, savedFile.getName().lastIndexOf("."));
         updateOSM.updateOsmXmlData(osmPath);
         osmToCSV.toCSVData(osmPath, createGraphCsv(mapName));
         osmToCSV.createPlaceDBDataCSV(osmPath, createPLacesCsv(mapName));
-        return "success";
+        return new HashMap<String, String>() {
+            {
+                put("filename", mapName);
+            }
+
+        };
     }
 
     @GetMapping("viewdata")

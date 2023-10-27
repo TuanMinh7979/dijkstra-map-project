@@ -231,74 +231,81 @@ public class UpdateOSM {
 
             // ADD NODEID TO WAY
             for (NearestServiceData pairI : nearestServiceDatas) {
+                try {
+                    Long wayPointNearestNodeId = pairI.getWaypointNearestNodeId();
+                    Long placeNodeId = pairI.getPlaceNodeId();
+                    String streetName = pairI.getStreetName();
 
-                Long wayPointNearestNodeId = pairI.getWaypointNearestNodeId();
-                Long placeNodeId = pairI.getPlaceNodeId();
-                String streetName = pairI.getStreetName();
-
-                Long wayId = getWayId(wayPointNearestNodeId, streetName);
-                if (wayId == null) {
-                    log.warn(">>>WayPointNearestNodeId " + wayPointNearestNodeId + " of node " + placeNodeId
-                            + " is not in any way");
-                    continue;
-                }
-
-                Integer wayIdx = wayIdIdxMap.get(wayId);
-                if (wayIdx == null)
-                    continue;
-                Node wayPointWay = wayIds.get(wayIdx);
-
-                NodeList wayPointWayChilds = wayPointWay.getChildNodes();
-
-                List<Node> wayPointWayChildNdTagList = new ArrayList<>();
-
-                List<Double> longListOrderForUpdateWay = new ArrayList<>();
-                for (int k = 0; k < wayPointWayChilds.getLength(); k++) {
-                    Node ndTagItem = wayPointWayChilds.item(k);
-                    if (ndTagItem.getNodeName().equals("nd")) {
-                        wayPointWayChildNdTagList.add(ndTagItem);
-                        Long ndTagItemRef = Long
-                                .parseLong(ndTagItem.getAttributes().getNamedItem("ref").getTextContent());
-                        longListOrderForUpdateWay
-                                .add(Double
-                                        .parseDouble(nodeIds.get(nodeIdIdxMap.get(ndTagItemRef)).getAttributes()
-                                                .getNamedItem("lon").getTextContent()));
+                    Long wayId = getWayId(wayPointNearestNodeId, streetName);
+                    if (wayId == null) {
+                        log.warn(">>>WayPointNearestNodeId " + wayPointNearestNodeId + " of node " + placeNodeId
+                                + " is not in any way");
+                        continue;
                     }
+
+                    Integer wayIdx = wayIdIdxMap.get(wayId);
+                    if (wayIdx == null)
+                        continue;
+                    Node wayPointWay = wayIds.get(wayIdx);
+
+                    NodeList wayPointWayChilds = wayPointWay.getChildNodes();
+
+                    List<Node> wayPointWayChildNdTagList = new ArrayList<>();
+
+                    List<Double> longListOrderForUpdateWay = new ArrayList<>();
+                    for (int k = 0; k < wayPointWayChilds.getLength(); k++) {
+                        Node ndTagItem = wayPointWayChilds.item(k);
+                        if (ndTagItem.getNodeName().equals("nd")) {
+                            wayPointWayChildNdTagList.add(ndTagItem);
+                            Long ndTagItemRef = Long
+                                    .parseLong(ndTagItem.getAttributes().getNamedItem("ref").getTextContent());
+                            longListOrderForUpdateWay
+                                    .add(Double
+                                            .parseDouble(nodeIds.get(nodeIdIdxMap.get(ndTagItemRef)).getAttributes()
+                                                    .getNamedItem("lon").getTextContent()));
+                        }
+                    }
+
+                    Double firstLong = longListOrderForUpdateWay.get(0);
+                    Double secondLong = longListOrderForUpdateWay.get(1);
+                    Integer placeNodeIdx = nodeIdIdxMap.get(placeNodeId);
+                    if (placeNodeIdx == null)
+                        continue;
+                    Node addPointNode = nodeIds.get(nodeIdIdxMap.get(placeNodeId));
+                    Double addNodeLong = Double
+                            .parseDouble(addPointNode.getAttributes().getNamedItem("lon").getTextContent());
+
+                    Element nd = doc.createElement("nd");
+                    nd.setAttribute("ref", String.valueOf(placeNodeId));
+                    nd.setAttribute("lon", String.valueOf(addNodeLong));
+                    longListOrderForUpdateWay.add(addNodeLong);
+
+                    if (firstLong > secondLong) {
+                        // decrease
+                        Collections.sort(longListOrderForUpdateWay, Comparator.reverseOrder());
+
+                    } else {
+                        // increase
+                        Collections.sort(longListOrderForUpdateWay);
+
+                    }
+                    int addedEleIdx = longListOrderForUpdateWay.indexOf(addNodeLong);
+
+                    Node posNode = null;
+
+                    if (addedEleIdx < (longListOrderForUpdateWay.size() - 1)) {
+                        posNode = wayPointWayChildNdTagList.get(addedEleIdx);
+
+                        wayPointWay.insertBefore(nd, posNode);
+                    } else if (addedEleIdx == (longListOrderForUpdateWay.size() - 1)) {
+
+                        wayPointWay.appendChild(nd);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Exception in addPlaceNodeToWay loop " + e.getMessage());
+                    continue;
                 }
 
-                Double firstLong = longListOrderForUpdateWay.get(0);
-                Double secondLong = longListOrderForUpdateWay.get(1);
-
-                Node addPointNode = nodeIds.get(nodeIdIdxMap.get(placeNodeId));
-                Double addNodeLong = Double
-                        .parseDouble(addPointNode.getAttributes().getNamedItem("lon").getTextContent());
-
-                Element nd = doc.createElement("nd");
-                nd.setAttribute("ref", String.valueOf(placeNodeId));
-                nd.setAttribute("lon", String.valueOf(addNodeLong));
-                longListOrderForUpdateWay.add(addNodeLong);
-
-                if (firstLong > secondLong) {
-                    // decrease
-                    Collections.sort(longListOrderForUpdateWay, Comparator.reverseOrder());
-
-                } else {
-                    // increase
-                    Collections.sort(longListOrderForUpdateWay);
-
-                }
-                int addedEleIdx = longListOrderForUpdateWay.indexOf(addNodeLong);
-
-                Node posNode = null;
-
-                if (addedEleIdx < (longListOrderForUpdateWay.size() - 1)) {
-                    posNode = wayPointWayChildNdTagList.get(addedEleIdx);
-
-                    wayPointWay.insertBefore(nd, posNode);
-                } else if (addedEleIdx == (longListOrderForUpdateWay.size() - 1)) {
-
-                    wayPointWay.appendChild(nd);
-                }
             }
             Transformer tf = TransformerFactory.newInstance().newTransformer();
             tf.setOutputProperty(OutputKeys.INDENT, "yes");
