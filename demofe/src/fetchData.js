@@ -20,7 +20,10 @@ export const getAPI = async (url) => {
         if (!response.ok) {
             throw new Error('Error in service');
         }
+
+
         const rs = await response.json();
+
         return rs
     } catch (e) {
         console.log(e);

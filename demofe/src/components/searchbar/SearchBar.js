@@ -69,7 +69,7 @@ function SearchBar({ placeholder, data, name, choosePlace }) {
             </div>
             {showResult && filteredData.length != 0 && (
                 <div className="dataResult">
-                    {filteredData.slice(0, 15).map((item, key) => {
+                    {filteredData.map((item, key) => {
                         return (
                             <div onClick={() => {
                                 setWordEntered(item.name)

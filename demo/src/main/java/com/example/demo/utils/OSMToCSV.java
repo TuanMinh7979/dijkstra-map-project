@@ -212,6 +212,8 @@ public class OSMToCSV {
                 for (int i = elChilds.getLength() - 1; i >= 0; i--) {
 
                     Node tagNode = elChilds.item(i);
+
+
                     if (tagNode.getNodeName().equals("tag")
                             && tagNode.getAttributes().getNamedItem("k").getTextContent().equals("name")) {
                         placeName = tagNode.getAttributes().getNamedItem("v").getTextContent();
@@ -221,7 +223,11 @@ public class OSMToCSV {
                 }
 
                 if (placeName.equals("none"))
+                {
+                    System.out.println("----------continue 224");
                     continue;
+                }
+
 
                 String[] array = new String[] { String.valueOf(elId), placeName };
                 writer.writeNext(array);
