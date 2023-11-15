@@ -38,7 +38,7 @@ public class UpdateOSM {
     private List<NearestServiceData> nearestServiceDatas = new ArrayList<>();
 
     public void updateOsmXmlData(String osmFilePath) {
-        System.out.println("UPDATE OSM XML FILE:");
+        System.out.println("===UPDATE OSM XML(OSM) FILE===");
         updatePlaceLonLatAndNearestServiceDatas(osmFilePath);
         addPlaceNodeToWay(osmFilePath);
         System.out.println("Update osm xml file data successfully!");
@@ -74,7 +74,7 @@ public class UpdateOSM {
     // street name
     // }
     private void updatePlaceLonLatAndNearestServiceDatas(String osmXmlFilePathToUpdate) {
-        System.out.println(">>>UPDATE PLACE LOCATION AND NEAREST SERVICE DATA");
+        System.out.println("___UPDATE PLACE LONG AND LAT BY PLACE'S WAY POINT LONG AND LAT ___");
         try {
 
             Document doc = buildXmlDocumentReader(osmXmlFilePathToUpdate);
@@ -89,7 +89,7 @@ public class UpdateOSM {
                     String urlStr = "http://router.project-osrm.org/nearest/v1/driving/" + oldlong + "," + oldlat
                             + "?number=1";
                     System.out
-                            .println(">>>>Url get waypoint location,  its nearest node id and its way name: " + urlStr);
+                            .println("Get waypoint data of place ( nearest node id and way name) in nearest service api: " + urlStr);
                     URL url = null;
                     try {
                         url = new URL(urlStr);
@@ -130,7 +130,7 @@ public class UpdateOSM {
                         Long placeNodeId = Long.parseLong(nodei.getAttributes().getNamedItem("id").getTextContent());
                         String dataStreetName = String.valueOf(wpData.get("name"));
 
-                        System.out.println("____STREETNAME là: " + dataStreetName);
+
                         dataStreetName = dataStreetName.isEmpty() ? "nullname" : dataStreetName;
                         nearestServiceDatas
                                 .add(new NearestServiceData(placeNodeId, wayPointNearestNodeId, dataStreetName));
@@ -167,7 +167,7 @@ public class UpdateOSM {
 
             tf.transform(source, result);
 
-            System.out.println(">>>Setup place location successfully");
+            System.out.println("Update place location by it way point location successfully");
 
         } catch (TransformerConfigurationException e) {
             e.printStackTrace();
@@ -218,7 +218,7 @@ public class UpdateOSM {
     // func to add to this.nodeIds and this.way
     private void addPlaceNodeToWay(String osmXmlFilePathToUpdate) {
         // setup resource
-        System.out.println(">>>ADD PLACE NODE TO WAY");
+        System.out.println("___ADD UPDATED PLACE NODE TO WAY NODE___");
         try {
 
             List<Node> nodeIds = new ArrayList<>();
@@ -238,7 +238,7 @@ public class UpdateOSM {
 
                     Long wayId = getWayId(wayPointNearestNodeId, streetName);
                     if (wayId == null) {
-                        log.warn(">>>WayPointNearestNodeId " + wayPointNearestNodeId + " of node " + placeNodeId
+                        System.out.println("Place waypoint id is " + wayPointNearestNodeId + " of place have id " + placeNodeId
                                 + " is not in any way");
                         continue;
                     }
@@ -302,7 +302,7 @@ public class UpdateOSM {
                         wayPointWay.appendChild(nd);
                     }
                 } catch (Exception e) {
-                    System.out.println("Exception in addPlaceNodeToWay loop " + e.getMessage());
+                    System.out.println("Exception in addPlaceNodeToWay Loop " + e.getMessage());
                     continue;
                 }
 
@@ -313,7 +313,7 @@ public class UpdateOSM {
             DOMSource source = new DOMSource(doc);
             StreamResult result = new StreamResult(osmXmlFilePathToUpdate);
             tf.transform(source, result);
-            System.out.println(">>>Add new place node to way successfully");
+            System.out.println("Add updated place  to way node successfully");
 
         } catch (TransformerConfigurationException e) {
             e.printStackTrace();
@@ -326,7 +326,7 @@ public class UpdateOSM {
 
     public Long getWayId(Long wayPointNearestNodeId, String streetNamePar) {
         String urlStr = "https://api.openstreetmap.org/api/0.6/node/" + wayPointNearestNodeId + "/ways";
-        System.out.println("way api of a wayPointNearestNodeId : " + wayPointNearestNodeId + " is " + urlStr);
+        System.out.println("Get way data of place's waypoint id : " + wayPointNearestNodeId + " at:  " + urlStr);
         URL url = null;
 
         try {
@@ -351,17 +351,14 @@ public class UpdateOSM {
 
                     if (childNode.getNodeName().equals("tag")) {
 
-                        if (childNode.getAttributes().getNamedItem("k").getTextContent().equals("name")) {
-                            System.out.println("---Street in api: "
-                                    + childNode.getAttributes().getNamedItem("k").getTextContent().equals("name"));
-                        }
+
                         if (!streetNamePar.equals("nullname")
                                 && childNode.getAttributes().getNamedItem("k").getTextContent().equals("name")
                                 && (childNode.getAttributes().getNamedItem("v").getTextContent().equals(streetNamePar)
                                         || streetNamePar.indexOf(
                                                 childNode.getAttributes().getNamedItem("v").getTextContent()) != -1)) {
                             wayIdStr = wayItem.getAttributes().getNamedItem("id").getTextContent();
-                            System.out.println(">>>>>Way id is " + wayIdStr + " in case 1");
+
                             return Long.parseLong(wayIdStr);
 
                         }
@@ -369,7 +366,7 @@ public class UpdateOSM {
                         if (streetNamePar.equals("nullname")
                                 && !childNode.getAttributes().getNamedItem("k").getTextContent().equals("name")) {
                             wayIdStr = wayItem.getAttributes().getNamedItem("id").getTextContent();
-                            System.out.println(">>>>>Way id is " + wayIdStr + " in case 2");
+
                             return Long.parseLong(wayIdStr);
 
                         }

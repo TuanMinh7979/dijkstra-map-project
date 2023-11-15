@@ -24,7 +24,7 @@ public class UploadUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(">>>Upload Osm file successfully!");
+        System.out.println("Upload Osm file successfully!");
         return savedFile;
     }
 

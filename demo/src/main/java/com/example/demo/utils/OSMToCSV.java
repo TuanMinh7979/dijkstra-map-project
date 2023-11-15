@@ -49,7 +49,7 @@ public class OSMToCSV {
 
     public void toCSVData(String inputOsmXmlFilePath, String outputGraphDataCsvPath) {
         try {
-
+            System.out.println("===CREATE GRAPH DATA===");
             Document doc = buildXmlDocumentReader(inputOsmXmlFilePath);
 
             NodeList osmNodes = doc.getElementsByTagName("node");
@@ -57,7 +57,7 @@ public class OSMToCSV {
 
             setUpNodes(osmNodes, outputGraphDataCsvPath);
             setUpEdges(osmNodes, osmWays, outputGraphDataCsvPath);
-            System.out.println("Create data csv file successfully!");
+            System.out.println("Create graph data successfully!");
 
         } catch (Exception e) {
 
@@ -69,6 +69,7 @@ public class OSMToCSV {
 
     private void setUpNodes(NodeList osmNodes, String outputGraphDataCsvPath) {
         try {
+            System.out.println("___ CREATE NODE GRAPH DATA ___");
             CSVWriter writer = new CSVWriter(new FileWriter(outputGraphDataCsvPath));
             for (int i = 0; i < osmNodes.getLength(); i++) {
                 Node node = osmNodes.item(i);
@@ -83,6 +84,7 @@ public class OSMToCSV {
                 writer.writeNext(array);
             }
             writer.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -90,7 +92,7 @@ public class OSMToCSV {
 
     //
     private void setUpEdges(NodeList osmNodes, NodeList osmWays, String outputGraphDataCsvPath) {
-
+        System.out.println("___ CREATE WAY GRAPH DATA ___");
         HashMap<Long, Integer> nodeIdIdxMap = new HashMap<>();
         for (int i = 0; i < osmNodes.getLength(); i++) {
             Node node = osmNodes.item(i);
@@ -173,7 +175,9 @@ public class OSMToCSV {
         return Haversine.distance(startLat, startLon, endLat, endLon);
     }
 
-    public void createPlaceDBDataCSV(String osmPath, String outputPlaceDBDataCsvFilePath) {
+//    create DB CSV DATA
+    public void createPlaceDataCSV(String osmPath, String outputPlaceDBDataCsvFilePath) {
+        System.out.println("===CREATE PLACE NAME AND ID CSV DATA===");
         try {
             List<Node> nodeList = new ArrayList<>();
             Map<Long, Integer> nodeIdIdxMap = new HashMap<>();
@@ -197,7 +201,7 @@ public class OSMToCSV {
 
             CSVWriter writer = new CSVWriter(
                     new FileWriter(outputPlaceDBDataCsvFilePath));
-            System.out.println(">>>SET DB DATA");
+
             for (Long elId : places) {
 
                 Node el = nodeList.get(nodeIdIdxMap.get(elId));
@@ -224,7 +228,7 @@ public class OSMToCSV {
             }
             writer.close();
 
-            System.out.println("Setup place data to csv file success fully");
+            System.out.println("Create Place name and id csv data successfully!");
         } catch (
 
         Exception e) {

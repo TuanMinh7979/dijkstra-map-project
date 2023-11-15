@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { Marker, Polyline } from "react-leaflet";
 import { deleteAPI, getAPI } from "./fetchData";
-import { useRef } from "react";
+
 import Map from "./Map";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
@@ -15,37 +15,31 @@ import Dialog from "./components/dialog/Dialog";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Loading from "./components/loading/Loading";
+import { API_URL } from "./constant";
 function App() {
+
+
   const [center, setCenter] = useState({ lat: "", lng: "" });
-
-  const [searchData, setSearchData] = useState(null);
   const [path, setPath] = useState([]);
-
   const [activeMap, setActiveMap] = useState("");
   const [mapList, setMapList] = useState([]);
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const onInputChange = (e) => {
-    const { name, value } = e.target;
-    setSearchData({
-      ...searchData,
-      [name]: value,
-    });
-  };
+
 
   const fetchMaps = async () => {
-    const rsdata = await getAPI("http://localhost:8080/maps")
+    const rsdata = await getAPI(`${API_URL}/maps`)
     setMapList(rsdata);
     setActiveMap(rsdata[0]);
   };
 
   const fetchCurMap = async () => {
     if (activeMap) {
-      const centerPlace = await getAPI(`http://localhost:8080/map/${activeMap}`);
+      const centerPlace = await getAPI(`${API_URL}/map/${activeMap}`);
 
       setCenter({ lng: centerPlace.lng, lat: centerPlace.lat });
-      const allPlaces = await getAPI(`http://localhost:8080/places`);
+      const allPlaces = await getAPI(`${API_URL}/places`);
 
       setPlaces([...allPlaces]);
     }
@@ -71,14 +65,14 @@ function App() {
 
         formData.append("file", selectedFile);
 
-        const rs = await fetch("http://localhost:8080/add-new-map", {
+        const rs = await fetch(`${API_URL}/add-new-map`, {
           method: "POST",
           body: formData,
         });
         const rsdata = await rs.json();
-        console.log("-----------------------------????????", rsdata);
-        console.log(rs);
 
+
+        setSelectedFile(null)
         setLoading(false)
         setMapList([...mapList, rsdata.filename])
       }
@@ -95,11 +89,11 @@ function App() {
       return;
     }
     const resdata = await fetch(
-      `http://localhost:8080/search?source=${findData.from}&destination=${findData.to}`
+      `${API_URL}/search?source=${findData.from}&destination=${findData.to}`
     )
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Có lỗi khi tải dữ liệu từ API");
+          throw new Error("Error");
         }
 
         return response.json();
@@ -109,7 +103,6 @@ function App() {
         console.error(error);
       });
 
-    console.log(resdata);
     setPath(resdata);
   };
 
@@ -141,11 +134,12 @@ function App() {
 
   const deleteService = async () => {
     if (dialogData.data) {
-      const rs = await deleteAPI(`http://localhost:8080/map/${dialogData.data}`);
+      const rs = await deleteAPI(`${API_URL}/map/${dialogData.data}`);
       toast.info("Delete success")
       setMapList([...mapList].filter(el => el != dialogData.data))
     }
   }
+
   return (
     <div>
       {loading && <Loading></Loading>}
@@ -188,8 +182,8 @@ function App() {
             handleClickDelete={handleClickDelete} />
           <div className="upload">
             <label htmlFor="">New map</label>
-            <input onChange={onChangeFile} type="file" />
-            <button onClick={uploadFile}>Upload</button>
+            <input onChange={onChangeFile} type="file"  />
+            <button disabled={!selectedFile} onClick={uploadFile}>Upload</button>
           </div>
 
         </div>

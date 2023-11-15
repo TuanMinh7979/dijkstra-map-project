@@ -9,7 +9,6 @@ const useDetectOutsideClick = (ref, initialState, excludeClass) => {
     const onClick = (event) => {
 
 
-      console.log(event.target, ">>>>>>>>>>>>",excludeClass, event.target.classList[0],  excludeClass != event.target.classList[0]);
       if (ref.current !== null && !ref.current.contains(event.target) && excludeClass != event.target.classList[0]) {
         setIsActive(false);
       }

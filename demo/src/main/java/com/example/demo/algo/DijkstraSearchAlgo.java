@@ -23,7 +23,7 @@ public class DijkstraSearchAlgo  {
 
     public List<PointDto> findShortestPath(Long srcNodeId, Long targetId) {
         try {
-            System.out.println(">>>>>>>>>>>>>>>1");
+
             data = adjListGraph.getData();
 
 
@@ -31,7 +31,12 @@ public class DijkstraSearchAlgo  {
             List<PointDto> visitedNodes = new ArrayList<>();
 
 
-            PointDto srcPointDto = pointMapper.toDto(data.get(srcNodeId));
+            Point p= data.get(srcNodeId);
+            if(p==null){
+                return new ArrayList<>(0);
+            }
+
+            PointDto srcPointDto = pointMapper.toDto(p);
 
 
             srcPointDto.setDistance(0.0);
@@ -42,7 +47,7 @@ public class DijkstraSearchAlgo  {
             visitedNodeMarks.put(srcPointDto.getId(), true);
             visitedNodes.add(srcPointDto);
 
-            System.out.println(">>>>>>>>>>>>>>>2");
+
             while (!priorityQueue.isEmpty()) {
                 PointDto curPointDto = priorityQueue.poll();
 
@@ -75,7 +80,7 @@ public class DijkstraSearchAlgo  {
 
             }
 
-            System.out.println(">>>>>>>>>>>>>>>3");
+
             PointDto target = null;
             for (PointDto rsi : visitedNodes) {
                 if (rsi.getId().equals(targetId)) {
@@ -88,7 +93,7 @@ public class DijkstraSearchAlgo  {
                 path.add(node);
             }
             Collections.reverse(path);
-            System.out.println(">>>>>>>>>>>>>>>" + path);
+
             return path;
 
 

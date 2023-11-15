@@ -26,6 +26,8 @@ img {
     align-items: center;
     /* justify-content: space-between; */
     gap: 80px;
+    flex-wrap: wrap;
+
 
 }
 
@@ -33,6 +35,7 @@ img {
     display: flex;
     align-items: center;
     gap: 30px;
+    flex-wrap: wrap;
 }
 
 .header .right {
@@ -40,6 +43,8 @@ img {
     display: flex;
     align-items: center;
     gap: 100px;
+    flex-wrap: wrap;
+
 }
 
 .header .right .upload {

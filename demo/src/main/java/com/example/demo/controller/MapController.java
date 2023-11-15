@@ -75,20 +75,7 @@ public class MapController {
         return placeData.getPlaceDtoList();
     }
 
-    // @GetMapping("test-update-osm")
-    // public String testUpdateOSM() {
-    // String osmPath = createOsmXmlPath(activeMapName);
-    // updateOSM.updateOsmXmlData(osmPath);
-    // return "thanhcong";
-    // }
 
-    // @GetMapping("test-create-graphcsv")
-    // public String testCreateGraphCSV() {
-    // String osmPath = createOsmXmlPath(activeMapName);
-    // String newGraphDataCsvPath = createGraphCsv(activeMapName);
-    // osmToCSV.toCSVData(osmPath, newGraphDataCsvPath);
-    // return "thanhcong";
-    // }
 
     @GetMapping("map/{mapname}")
     public Map<String, String> getMap(@PathVariable String mapname) {
@@ -115,7 +102,7 @@ public class MapController {
         String mapName = savedFile.getName().substring(0, savedFile.getName().lastIndexOf("."));
         updateOSM.updateOsmXmlData(osmPath);
         osmToCSV.toCSVData(osmPath, createGraphCsv(mapName));
-        osmToCSV.createPlaceDBDataCSV(osmPath, createPLacesCsv(mapName));
+        osmToCSV.createPlaceDataCSV(osmPath, createPLacesCsv(mapName));
         return new HashMap<String, String>() {
             {
                 put("filename", mapName);
