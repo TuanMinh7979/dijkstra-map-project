@@ -240,13 +240,13 @@ public class UpdateOSM {
                     if (wayId == null) {
                         System.out.println("Place waypoint id is " + wayPointNearestNodeId + " of place have id " + placeNodeId
                                 + " is not in any way");
-                        System.out.println("----------continue 243");
+
                         continue;
                     }
 
                     Integer wayIdx = wayIdIdxMap.get(wayId);
                     if (wayIdx == null){
-                        System.out.println("----------continue 248");
+
                         continue;
                     }
 
@@ -274,7 +274,7 @@ public class UpdateOSM {
                     Double secondLong = longListOrderForUpdateWay.get(1);
                     Integer placeNodeIdx = nodeIdIdxMap.get(placeNodeId);
                     if (placeNodeIdx == null){
-                        System.out.println("----------continue 276");
+
                         continue;
                     }
 
@@ -310,7 +310,7 @@ public class UpdateOSM {
                     }
                 } catch (Exception e) {
                     System.out.println("Exception in addPlaceNodeToWay Loop " + e.getMessage());
-                    System.out.println("----------continue 313");
+
                     continue;
                 }
 

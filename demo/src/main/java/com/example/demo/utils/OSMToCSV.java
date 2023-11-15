@@ -224,7 +224,7 @@ public class OSMToCSV {
 
                 if (placeName.equals("none"))
                 {
-                    System.out.println("----------continue 224");
+
                     continue;
                 }
 

@@ -6,7 +6,8 @@ import { deleteAPI, getAPI } from "./fetchData";
 import Map from "./Map";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
-import { greenIcon } from "./components/leaftlet/Icon";
+
+import { greenIcon, blueIcon } from "./components/leaftlet/Icon";
 import SearchBar from "./components/searchbar/SearchBar";
 import SelectDropDown from "./components/dropdown/SelectDropDown"
 import Dialog from "./components/dialog/Dialog";
@@ -196,7 +197,7 @@ function App() {
         >
           {path.length > 0 && (
             <>
-              <Marker position={[path[0].lat, path[0].lon]} icon={greenIcon} />
+              <Marker position={[path[0].lat, path[0].lon]} icon={blueIcon} />
               <Marker
                 position={[
                   path[path.length - 1].lat,
